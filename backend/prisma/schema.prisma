@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  MOD
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  username      String    @unique
+  email         String    @unique
+  passwordHash  String
+  avatarUrl     String?
+  bio           String?
+  isVerified    Boolean   @default(false)
+  verifyToken   String?
+  refreshToken  String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+
+  posts         Post[]
+  comments      Comment[]
+  reactions     Reaction[]
+  following     Follow[]  @relation("following")
+  followers     Follow[]  @relation("followers")
+  notifications Notification[]
+}
+
+model Post {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  authorId    String    @db.ObjectId
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content     String
+  imageUrl    String?
+  isAnonymous Boolean   @default(false)
+  tags        String[]
+  createdAt   DateTime  @default(now())
+
+  comments    Comment[]
+  reactions   Reaction[]
+  flags       FlaggedPost[]
+
+  @@index([createdAt])
+  @@index([authorId])
+}
+
+model Comment {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  postId          String    @db.ObjectId
+  post            Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId        String    @db.ObjectId
+  author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content         String
+  isAnonymous     Boolean   @default(false)
+  parentCommentId String?   @db.ObjectId
+  createdAt       DateTime  @default(now())
+
+  @@index([postId])
+  @@index([parentCommentId])
+}
+
+model Reaction {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Follow {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  followerId  String   @db.ObjectId
+  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String   @db.ObjectId
+  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model Notification {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String   // "REPLY" | "REACTION" | "FOLLOW"
+  referenceId String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+model FlaggedPost {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+}
