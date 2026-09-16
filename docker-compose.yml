@@ -1,0 +1,52 @@
+# Full local stack: MongoDB (single-node replica set), Redis, API, web.
+#   docker compose up --build
+# Then open http://localhost:3000 — seed with: docker compose exec api npm run db:seed
+services:
+  mongo:
+    image: mongo:8
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports: ["27017:27017"]
+    volumes: ["mongo-data:/data/db"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "try { rs.status().ok } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}).ok }"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  api:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_started }
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DATABASE_URL: mongodb://mongo:27017/onlypain?replicaSet=rs0
+      REDIS_URL: redis://redis:6379
+      CLIENT_URL: http://localhost:3000
+      JWT_SECRET: dev-only-change-me-dev-only-change-me
+      JWT_REFRESH_SECRET: dev-only-change-me-too-dev-only-change-me-too
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AI_SAFETY_MODE: ${AI_SAFETY_MODE:-full}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+    ports: ["4000:4000"]
+    command: ["sh", "-c", "cd /app/backend && npx prisma db push --skip-generate && node dist/index.js"]
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_SOCKET_URL: http://localhost:4000
+        NEXT_PUBLIC_APP_URL: http://localhost:3000
+    depends_on: [api]
+    environment:
+      API_PROXY_URL: http://api:4000
+    ports: ["3000:3000"]
+
+volumes:
+  mongo-data:

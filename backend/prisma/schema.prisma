@@ -1,3 +1,7 @@
+// only pain — data model (MongoDB via Prisma)
+// Safety invariants live in the service layer (see src/lib/anonymize.ts):
+// anonymous posts/comments store the real authorId but it is never returned.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,76 +11,271 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ---------- Enums ----------
+
 enum Role {
   USER
   MOD
   ADMIN
 }
 
-model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  username      String    @unique
-  email         String    @unique
-  passwordHash  String
-  avatarUrl     String?
-  bio           String?
-  isVerified    Boolean   @default(false)
-  verifyToken   String?
-  refreshToken  String?
-  role          Role      @default(USER)
-  createdAt     DateTime  @default(now())
-
-  posts         Post[]
-  comments      Comment[]
-  reactions     Reaction[]
-  following     Follow[]  @relation("following")
-  followers     Follow[]  @relation("followers")
-  notifications Notification[]
+enum Plan {
+  FREE
+  PLUS
 }
 
-model Post {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  authorId    String    @db.ObjectId
-  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  content     String
-  imageUrl    String?
-  isAnonymous Boolean   @default(false)
-  tags        String[]
-  createdAt   DateTime  @default(now())
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
 
-  comments    Comment[]
-  reactions   Reaction[]
-  flags       FlaggedPost[]
+enum DmPrivacy {
+  EVERYONE
+  FOLLOWING
+  NOBODY
+}
+
+enum ReactionType {
+  HEART
+  FEEL_THIS
+  NOT_ALONE
+  STRENGTH
+  HUG
+}
+
+enum ModerationStatus {
+  VISIBLE
+  PENDING
+  HIDDEN
+  REMOVED
+}
+
+enum RiskLevel {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum NotificationType {
+  COMMENT
+  REPLY
+  REACTION
+  FOLLOW
+  CIRCLE_JOIN
+  DM_REQUEST
+  DM_ACCEPTED
+  DM_MESSAGE
+  SUPPORT
+  SYSTEM
+}
+
+enum ReportSource {
+  USER
+  AI
+}
+
+enum ReportReason {
+  SELF_HARM_RISK
+  HARMFUL_CONTENT
+  HARASSMENT
+  HATE
+  SPAM
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+enum ConversationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum CircleRole {
+  MEMBER
+  MOD
+  OWNER
+}
+
+enum CompanionRole {
+  USER
+  ASSISTANT
+}
+
+enum AiFeature {
+  COMPANION
+  REFRAME
+  REPLY_HELPER
+  REFLECTION
+}
+
+// ---------- Users ----------
+
+model User {
+  id                   String              @id @default(auto()) @map("_id") @db.ObjectId
+  username             String              @unique
+  email                String              @unique
+  passwordHash         String
+  displayName          String?
+  pronouns             String?
+  avatarUrl            String?
+  bio                  String?
+  struggles            String[]            @default([])
+  onboardedAt          DateTime?
+  emailVerified        Boolean             @default(false)
+  emailVerifyTokenHash String?
+  emailVerifyExpires   DateTime?
+  passwordResetHash    String?
+  passwordResetExpires DateTime?
+  role                 Role                @default(USER)
+  plan                 Plan                @default(FREE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  subscriptionStatus   SubscriptionStatus?
+  planRenewsAt         DateTime?
+  isBanned             Boolean             @default(false)
+  bannedReason         String?
+  dmPrivacy            DmPrivacy           @default(EVERYONE)
+  showMoodOnProfile    Boolean             @default(false)
+  emailNotifications   Boolean             @default(true)
+  lastActiveAt         DateTime            @default(now())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  posts              Post[]
+  comments           Comment[]
+  reactions          Reaction[]
+  following          Follow[]           @relation("following")
+  followers          Follow[]           @relation("followers")
+  notifications      Notification[]     @relation("notificationUser")
+  actedNotifications Notification[]     @relation("notificationActor")
+  circleMemberships  CircleMember[]
+  createdCircles     Circle[]
+  conversationsA     Conversation[]     @relation("convoUserA")
+  conversationsB     Conversation[]     @relation("convoUserB")
+  messages           Message[]
+  moodEntries        MoodEntry[]
+  companionSessions  CompanionSession[]
+  aiUsage            AiUsage[]
+  reframes           ReframeEntry[]
+  reflections        WeeklyReflection[]
+  reports            Report[]           @relation("reporter")
+  reportsAgainst     Report[]           @relation("reportedUser")
+  resolvedReports    Report[]           @relation("resolver")
+  blocking           Block[]            @relation("blocker")
+  blockedBy          Block[]            @relation("blocked")
+  bookmarks          Bookmark[]
+  sessions           RefreshSession[]
 
   @@index([createdAt])
-  @@index([authorId])
+  @@index([struggles])
+  @@index([stripeCustomerId])
+}
+
+model RefreshSession {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String
+  userAgent  String?
+  ip         String?
+  expiresAt  DateTime
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ---------- Content ----------
+
+model Post {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  authorId       String           @db.ObjectId
+  author         User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content        String
+  imageUrl       String?
+  isAnonymous    Boolean          @default(false)
+  tags           String[]         @default([])
+  circleId       String?          @db.ObjectId
+  circle         Circle?          @relation(fields: [circleId], references: [id], onDelete: SetNull)
+  contentWarning String?
+  moderation     ModerationStatus @default(VISIBLE)
+  riskLevel      RiskLevel        @default(NONE)
+  aiReviewedAt   DateTime?
+  reactionCount  Int              @default(0)
+  commentCount   Int              @default(0)
+  editedAt       DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  comments      Comment[]
+  reactions     Reaction[]
+  reports       Report[]
+  bookmarks     Bookmark[]
+  notifications Notification[]
+
+  @@index([createdAt])
+  @@index([authorId, createdAt])
+  @@index([circleId, createdAt])
+  @@index([tags])
+  @@index([moderation, createdAt])
 }
 
 model Comment {
-  id              String    @id @default(auto()) @map("_id") @db.ObjectId
-  postId          String    @db.ObjectId
-  post            Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  authorId        String    @db.ObjectId
-  author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  postId          String           @db.ObjectId
+  post            Post             @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId        String           @db.ObjectId
+  author          User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
   content         String
-  isAnonymous     Boolean   @default(false)
-  parentCommentId String?   @db.ObjectId
-  createdAt       DateTime  @default(now())
+  isAnonymous     Boolean          @default(false)
+  parentCommentId String?          @db.ObjectId
+  moderation      ModerationStatus @default(VISIBLE)
+  riskLevel       RiskLevel        @default(NONE)
+  createdAt       DateTime         @default(now())
 
-  @@index([postId])
+  reports       Report[]
+  notifications Notification[]
+
+  @@index([postId, createdAt])
   @@index([parentCommentId])
 }
 
 model Reaction {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  postId    String   @db.ObjectId
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId    String   @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String       @db.ObjectId
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String       @db.ObjectId
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      ReactionType @default(HEART)
+  createdAt DateTime     @default(now())
 
   @@unique([postId, userId])
+  @@index([userId, createdAt])
 }
+
+model Bookmark {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String   @db.ObjectId
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt])
+}
+
+// ---------- Graph ----------
 
 model Follow {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -87,26 +286,225 @@ model Follow {
   createdAt   DateTime @default(now())
 
   @@unique([followerId, followingId])
+  @@index([followingId])
 }
 
-model Notification {
+model Block {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  blockerId String   @db.ObjectId
+  blocker   User     @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String   @db.ObjectId
+  blocked   User     @relation("blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+// ---------- Circles (topic support groups) ----------
+
+model Circle {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        String   // "REPLY" | "REACTION" | "FOLLOW"
-  referenceId String
-  isRead      Boolean  @default(false)
+  slug        String   @unique
+  name        String
+  tagline     String
+  description String?
+  emoji       String   @default("🫂")
+  hue         Int      @default(30)
+  tags        String[] @default([])
+  guidelines  String?
+  isOfficial  Boolean  @default(false)
+  createdById String?  @db.ObjectId
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  memberCount Int      @default(0)
+  postCount   Int      @default(0)
   createdAt   DateTime @default(now())
 
+  members       CircleMember[]
+  posts         Post[]
+  notifications Notification[]
+
+  @@index([memberCount])
+}
+
+model CircleMember {
+  id       String     @id @default(auto()) @map("_id") @db.ObjectId
+  circleId String     @db.ObjectId
+  circle   Circle     @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  userId   String     @db.ObjectId
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     CircleRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+
+  @@unique([circleId, userId])
+  @@index([userId])
+}
+
+// ---------- Direct messages ----------
+
+model Conversation {
+  id                 String             @id @default(auto()) @map("_id") @db.ObjectId
+  userAId            String             @db.ObjectId
+  userA              User               @relation("convoUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userBId            String             @db.ObjectId
+  userB              User               @relation("convoUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  initiatorId        String             @db.ObjectId
+  status             ConversationStatus @default(PENDING)
+  lastMessageAt      DateTime?
+  lastMessagePreview String?
+  unreadA            Int                @default(0)
+  unreadB            Int                @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  messages      Message[]
+  notifications Notification[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId, lastMessageAt])
+  @@index([userBId, lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String       @db.ObjectId
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String       @db.ObjectId
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  riskLevel      RiskLevel    @default(NONE)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// ---------- Notifications ----------
+
+model Notification {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String           @db.ObjectId
+  user           User             @relation("notificationUser", fields: [userId], references: [id], onDelete: Cascade)
+  actorId        String?          @db.ObjectId
+  actor          User?            @relation("notificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  actorAnonymous Boolean          @default(false)
+  type           NotificationType
+  postId         String?          @db.ObjectId
+  post           Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  commentId      String?          @db.ObjectId
+  comment        Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  conversationId String?          @db.ObjectId
+  conversation   Conversation?    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  circleId       String?          @db.ObjectId
+  circle         Circle?          @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  message        String?
+  isRead         Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+
+  @@index([userId, createdAt])
   @@index([userId, isRead])
 }
 
-model FlaggedPost {
+// ---------- Safety & moderation ----------
+
+model Report {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  source       ReportSource @default(USER)
+  reporterId   String?      @db.ObjectId
+  reporter     User?        @relation("reporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  postId       String?      @db.ObjectId
+  post         Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  commentId    String?      @db.ObjectId
+  comment      Comment?     @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  targetUserId String?      @db.ObjectId
+  targetUser   User?        @relation("reportedUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  reason       ReportReason
+  details      String?
+  riskLevel    RiskLevel?
+  status       ReportStatus @default(OPEN)
+  resolvedById String?      @db.ObjectId
+  resolvedBy   User?        @relation("resolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolution   String?
+  resolvedAt   DateTime?
+  createdAt    DateTime     @default(now())
+
+  @@index([status, createdAt])
+  @@index([postId])
+}
+
+// ---------- Wellbeing tools ----------
+
+model MoodEntry {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  postId    String   @db.ObjectId
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  reason    String
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dayKey    String
+  score     Int
+  feelings  String[] @default([])
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, dayKey])
+  @@index([userId, createdAt])
+}
+
+model CompanionSession {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages CompanionMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+model CompanionMessage {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId String           @db.ObjectId
+  session   CompanionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      CompanionRole
+  content   String
+  riskLevel RiskLevel        @default(NONE)
+  createdAt DateTime         @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+model ReframeEntry {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  thought     String
+  validation  String
+  patterns    Json
+  reframe     String
+  tinyStep    String
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model WeeklyReflection {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekKey   String
+  content   Json
   createdAt DateTime @default(now())
 
-  @@index([postId])
+  @@unique([userId, weekKey])
+}
+
+model AiUsage {
+  id      String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId  String    @db.ObjectId
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dayKey  String
+  feature AiFeature
+  count   Int       @default(0)
+
+  @@unique([userId, dayKey, feature])
 }

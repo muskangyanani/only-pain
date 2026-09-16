@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main, v2]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API · typecheck + test
+    runs-on: ubuntu-latest
+    env:
+      TEST_DATABASE_URL: mongodb://127.0.0.1:27017/onlypain_test?replicaSet=rs0
+      DATABASE_URL: mongodb://127.0.0.1:27017/onlypain_test?replicaSet=rs0
+      JWT_SECRET: ci-secret-ci-secret-ci-secret
+      JWT_REFRESH_SECRET: ci-refresh-ci-refresh-ci-refresh
+      CLIENT_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Start MongoDB (replica set)
+        uses: supercharge/mongodb-github-action@1.12.0
+        with:
+          mongodb-version: "8.0"
+          mongodb-replica-set: rs0
+          mongodb-port: 27017
+      - run: npm ci --no-audit --no-fund
+      - run: npm run db:generate
+      - run: npm run typecheck -w backend
+      - run: npm test -w backend
+
+  web:
+    name: Web · lint + typecheck + build
+    runs-on: ubuntu-latest
+    env:
+      API_PROXY_URL: http://localhost:4000
+      NEXT_PUBLIC_SOCKET_URL: http://localhost:4000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint -w frontend
+      - run: npm run typecheck -w frontend
+      - run: npm run build -w frontend
+
+  docker:
+    name: Docker · API image builds
+    runs-on: ubuntu-latest
+    needs: [api]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

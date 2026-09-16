@@ -1,63 +1,88 @@
+import type { NotificationType } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
+import { cursorArgs, paginate } from "../lib/pagination.js";
+import { ANONYMOUS_AUTHOR } from "../lib/anonymize.js";
+import { emitToUser } from "../socket/emitter.js";
+import { notFound } from "../lib/errors.js";
 
-export async function createNotification(
-  userId: string,
-  type: string,
-  referenceId: string
-) {
-  return prisma.notification.create({
-    data: { userId, type, referenceId },
-  });
-}
+const actorSelect = { id: true, username: true, displayName: true, avatarUrl: true } as const;
 
-export async function getNotifications(
-  userId: string,
-  cursor: string | undefined,
-  limit: number = 20
-) {
-  const notifications = await prisma.notification.findMany({
-    where: { userId },
-    take: limit + 1,
-    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-    orderBy: { createdAt: "desc" },
-  });
+export const notificationInclude = {
+  actor: { select: actorSelect },
+  post: { select: { id: true, content: true, isAnonymous: true } },
+  comment: { select: { id: true, content: true } },
+  circle: { select: { id: true, slug: true, name: true, emoji: true } },
+} as const;
 
-  const hasMore = notifications.length > limit;
-  if (hasMore) notifications.pop();
+type Row = Awaited<ReturnType<typeof prisma.notification.findFirst<{ include: typeof notificationInclude }>>>;
 
+export function formatNotification(n: NonNullable<Row>) {
   return {
-    data: notifications,
-    nextCursor: notifications.at(-1)?.id ?? null,
-    hasMore,
+    id: n.id,
+    type: n.type,
+    isRead: n.isRead,
+    createdAt: n.createdAt,
+    message: n.message,
+    actor: n.actorAnonymous || !n.actor ? { ...ANONYMOUS_AUTHOR } : n.actor,
+    post: n.post ? { id: n.post.id, preview: n.post.content.slice(0, 90) } : null,
+    comment: n.comment ? { id: n.comment.id, preview: n.comment.content.slice(0, 90) } : null,
+    conversationId: n.conversationId,
+    circle: n.circle,
   };
 }
 
-export async function markAsRead(notificationId: string, userId: string) {
-  const notification = await prisma.notification.findUnique({
-    where: { id: notificationId },
+export async function notify(input: {
+  userId: string;
+  type: NotificationType;
+  actorId?: string | null;
+  actorAnonymous?: boolean;
+  postId?: string | null;
+  commentId?: string | null;
+  conversationId?: string | null;
+  circleId?: string | null;
+  message?: string | null;
+}) {
+  if (input.actorId && input.actorId === input.userId) return null; // never notify yourself
+  const created = await prisma.notification.create({
+    data: {
+      userId: input.userId,
+      type: input.type,
+      actorId: input.actorId ?? null,
+      actorAnonymous: input.actorAnonymous ?? false,
+      postId: input.postId ?? null,
+      commentId: input.commentId ?? null,
+      conversationId: input.conversationId ?? null,
+      circleId: input.circleId ?? null,
+      message: input.message ?? null,
+    },
+    include: notificationInclude,
   });
+  const payload = formatNotification(created);
+  const unread = await prisma.notification.count({ where: { userId: input.userId, isRead: false } });
+  emitToUser(input.userId, "notification:new", { notification: payload, unread });
+  return payload;
+}
 
-  if (!notification || notification.userId !== userId) {
-    throw new Error("Notification not found");
-  }
-
-  return prisma.notification.update({
-    where: { id: notificationId },
-    data: { isRead: true },
+export async function list(userId: string, cursor: string | undefined, limit: number) {
+  const rows = await prisma.notification.findMany({
+    where: { userId },
+    ...cursorArgs(cursor, limit),
+    orderBy: { createdAt: "desc" },
+    include: notificationInclude,
   });
+  const page = paginate(rows, limit);
+  return { ...page, data: page.data.map(formatNotification) };
+}
+
+export async function unreadCount(userId: string) {
+  return prisma.notification.count({ where: { userId, isRead: false } });
+}
+
+export async function markRead(userId: string, id: string) {
+  const res = await prisma.notification.updateMany({ where: { id, userId }, data: { isRead: true } });
+  if (res.count === 0) throw notFound("Notification");
 }
 
 export async function markAllRead(userId: string) {
-  await prisma.notification.updateMany({
-    where: { userId, isRead: false },
-    data: { isRead: true },
-  });
-  return { message: "All notifications marked as read" };
-}
-
-export async function getUnreadCount(userId: string) {
-  const count = await prisma.notification.count({
-    where: { userId, isRead: false },
-  });
-  return { count };
+  await prisma.notification.updateMany({ where: { userId, isRead: false }, data: { isRead: true } });
 }

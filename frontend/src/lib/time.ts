@@ -1,17 +1,33 @@
-export function formatDistanceToNow(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+export function timeAgo(input: string | Date, now = Date.now()) {
+  const date = typeof input === "string" ? new Date(input) : input;
+  const s = Math.max(0, Math.floor((now - date.getTime()) / 1000));
+  if (s < 45) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 7) return `${d}d`;
+  if (d < 30) return `${Math.floor(d / 7)}w`;
+  if (d < 365) return `${Math.floor(d / 30)}mo`;
+  return `${Math.floor(d / 365)}y`;
+}
 
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months}mo ago`;
-  const years = Math.floor(months / 12);
-  return `${years}y ago`;
+export function longDate(input: string | Date) {
+  const date = typeof input === "string" ? new Date(input) : input;
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+export function timeOfDay(input: string | Date) {
+  const date = typeof input === "string" ? new Date(input) : input;
+  return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+}
+
+export function greeting(d = new Date()) {
+  const h = d.getHours();
+  if (h < 5) return "still up";
+  if (h < 12) return "good morning";
+  if (h < 17) return "good afternoon";
+  if (h < 21) return "good evening";
+  return "late night";
 }

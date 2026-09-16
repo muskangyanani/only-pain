@@ -1,71 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import * as React from "react";
 import Link from "next/link";
-import { api } from "@/lib/api-client";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useSearchParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/misc";
+
+function Verify() {
+  const token = useSearchParams().get("token") ?? "";
+  const qc = useQueryClient();
+  const q = useQuery({ queryKey: ["verify", token], queryFn: () => api.get(`/api/auth/verify-email?token=${encodeURIComponent(token)}`), enabled: !!token, retry: false });
+  React.useEffect(() => {
+    if (q.isSuccess) qc.invalidateQueries({ queryKey: qk.me });
+  }, [q.isSuccess, qc]);
+  return (
+    <div className="animate-fade-up space-y-4">
+      <h1 className="font-display text-[30px] text-fg">{q.isPending && token ? "Verifying…" : q.isSuccess ? "You're verified." : "That link didn't work."}</h1>
+      {q.isPending && token ? <Spinner /> : q.isSuccess ? <p className="text-[14px] text-fg-muted">Thanks. Password resets and account recovery will work now.</p> : <p className="text-[14px] text-fg-muted">{(q.error as Error)?.message ?? "The link may be missing or expired."} You can request a new one from Settings.</p>}
+      <Button asChild><Link href="/home">Go home</Link></Button>
+    </div>
+  );
+}
 
 export default function VerifyEmailPage() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
-  );
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    if (!token) {
-      setStatus("error");
-      setMessage("No verification token provided.");
-      return;
-    }
-
-    async function verify() {
-      const res = await api.get<{ message: string }>(
-        `/api/auth/verify-email?token=${token}`
-      );
-      if (res.success) {
-        setStatus("success");
-        setMessage(res.data.message);
-      } else {
-        setStatus("error");
-        setMessage(res.error);
-      }
-    }
-
-    verify();
-  }, [token]);
-
-  return (
-    <Card className="border-border bg-card">
-      <CardHeader className="text-center">
-        <h1 className="text-2xl font-bold text-foreground">
-          Email Verification
-        </h1>
-      </CardHeader>
-      <CardContent className="text-center">
-        {status === "loading" && (
-          <p className="text-muted-foreground">Verifying your email...</p>
-        )}
-        {status === "success" && (
-          <div className="space-y-4">
-            <p className="text-foreground">{message}</p>
-            <Button asChild>
-              <Link href="/login">Log in</Link>
-            </Button>
-          </div>
-        )}
-        {status === "error" && (
-          <div className="space-y-4">
-            <p className="text-destructive">{message}</p>
-            <Button variant="outline" asChild>
-              <Link href="/signup">Try again</Link>
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+  return <React.Suspense fallback={null}><Verify /></React.Suspense>;
 }

@@ -1,21 +1,26 @@
 {
   "name": "onlypain",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
+  "description": "only pain — a quiet corner of the internet for the heavy stuff.",
+  "workspaces": ["frontend", "backend"],
+  "engines": { "node": ">=20.9.0" },
   "scripts": {
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev -w backend\" \"npm run dev -w frontend\"",
-    "dev:backend": "npm run dev -w backend",
-    "dev:frontend": "npm run dev -w frontend",
-    "db:push": "npm run db:push -w backend",
+    "dev": "concurrently -n api,web -c yellow,magenta \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "dev:db": "bash scripts/dev-mongo.sh",
+    "dev:api": "npm run dev -w backend",
+    "dev:web": "npm run dev -w frontend",
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "typecheck": "npm run typecheck -w backend && npm run typecheck -w frontend",
+    "lint": "npm run lint -w frontend",
+    "test": "npm run test -w backend",
     "db:generate": "npm run db:generate -w backend",
+    "db:push": "npm run db:push -w backend",
+    "db:seed": "npm run db:seed -w backend",
     "db:studio": "npm run db:studio -w backend"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
-    "typescript": "^5.7.3"
+    "typescript": "5.9.3"
   }
 }
