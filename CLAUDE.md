@@ -44,5 +44,6 @@ App Router with route groups: `(marketing)` public pages, `(auth)`, `(flow)/onbo
 ## Conventions
 
 - Copy is lowercase-brand ("only pain"), warm, honest, never toxic-positive. Helplines: India first (14416).
+- **No platform emoji anywhere in the UI.** Reactions, circle glyphs and the mood scale are hand-drawn SVG "ink" icons in `frontend/src/components/icons/` (`ReactionIcon`, `CircleIcon`/`CircleBadge`, `MoodIcon`). Circles store an icon *key* (`CIRCLE_ICONS`, mirrored in both constants files), never an emoji.
 - Constants (tags, reactions, feelings, limits) are mirrored in `backend/src/lib/constants.ts` and `frontend/src/lib/constants.ts` — change both.
 - Prisma + MongoDB: no `@unique` on optional fields (null collides); `db push` only, no migrations.
