@@ -8,6 +8,8 @@
   Post anonymously. Find people who actually get it. Talk to <strong>Ember</strong> when nobody else is awake.
 </p>
 
+<p align="center"><strong>Live:</strong> <a href="https://onlypain.vercel.app">onlypain.vercel.app</a> · API: <a href="https://onlypain-api.onrender.com/api/health">onlypain-api.onrender.com</a></p>
+
 <p align="center">
   <a href="#features">Features</a> · <a href="#architecture">Architecture</a> · <a href="#safety-design">Safety</a> · <a href="#local-development">Run locally</a> · <a href="DEPLOYMENT.md">Deploy</a>
 </p>

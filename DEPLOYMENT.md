@@ -1,5 +1,27 @@
 # Deploying only pain
 
+## Current deployment (free tier, no card)
+
+| | Where | URL |
+|---|---|---|
+| Web | Vercel Hobby · project `onlypain` (root directory `frontend`) | https://onlypain.vercel.app |
+| API | Render Free · Docker web service `onlypain-api` (Singapore), deploys from branch `v2` on push | https://onlypain-api.onrender.com |
+| DB | MongoDB Atlas M0 · project `onlypain`, cluster `onlypain` (AWS Singapore) | `/api/health` reports `db: ok` |
+
+Production secrets live only in `backend/.env.production.local` (gitignored) and in the two dashboards. AI runs in mock mode until `ANTHROPIC_API_KEY` is set on Render; Stripe/Resend/Redis are unset.
+
+**Redeploy the web app** (the Vercel project is linked at the repo root, `.vercel/`):
+```bash
+vercel pull --yes --environment=production && vercel build --prod --yes && vercel deploy --prebuilt --prod --yes
+```
+Vercel stores env vars as *sensitive* on this account, so a local build can't read `BACKEND_URL`; `frontend/src/lib/server-env.ts` falls back to the public `NEXT_PUBLIC_SOCKET_URL` (same origin). Connecting the GitHub repo in the Vercel dashboard makes deploys automatic instead.
+
+**Redeploy the API**: push to `v2` (auto-deploy is on), or `POST https://api.render.com/v1/services/<id>/deploys` with the API key.
+
+**Free-tier caveats**: Render Free sleeps after 15 idle minutes (~30–60 s cold start) — `.github/workflows/keepalive.yml` pings it every 10 minutes but scheduled workflows only run from the repository's default branch. Free instance hours (750/month) are shared across all free services in the Render workspace.
+
+---
+
 Two services, one database. Total cost at launch: **₹0–₹500/month** depending on traffic (Atlas M0, Vercel Hobby, Railway/Render starter, Upstash free, Resend free, pay-as-you-go Anthropic).
 
 ```
