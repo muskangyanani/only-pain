@@ -6,8 +6,9 @@ const API_PROXY_URL = process.env.API_PROXY_URL ?? "http://localhost:4000";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Standalone output lets the Dockerfile ship a tiny runtime image; harmless on Vercel.
-  output: "standalone",
+  // Standalone output lets the Dockerfile ship a tiny runtime image. Vercel uses its own
+  // output format, so skip it there.
+  output: process.env.VERCEL ? undefined : "standalone",
   poweredByHeader: false,
   images: {
     remotePatterns: [

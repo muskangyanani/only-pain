@@ -2,9 +2,10 @@
 FROM node:22-slim AS build
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+# Workspace manifests first so the dependency layer caches.
 COPY package.json package-lock.json ./
-COPY backend/package.json backend/package.json
-COPY frontend/package.json frontend/package.json
+COPY backend/package.json backend/
+COPY frontend/package.json frontend/
 RUN npm ci --workspace backend --include-workspace-root --no-audit --no-fund
 COPY tsconfig.base.json ./
 COPY backend ./backend
@@ -15,12 +16,10 @@ FROM node:22-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/backend/node_modules ./backend/node_modules
-COPY --from=build /app/backend/dist ./backend/dist
-COPY --from=build /app/backend/prisma ./backend/prisma
-COPY --from=build /app/backend/package.json ./backend/package.json
-COPY package.json ./
+# dist + prisma schema + generated client live under backend/ (and hoisted node_modules above)
+COPY --from=build /app/backend ./backend
 WORKDIR /app/backend
 USER node
 EXPOSE 4000

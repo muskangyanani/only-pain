@@ -8,14 +8,18 @@
  */
 import { PrismaClient, type Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "node:crypto";
 
-if (process.env.NODE_ENV === "production" && process.env.SEED_FORCE !== "1") {
+const isProd = process.env.NODE_ENV === "production";
+if (isProd && process.env.SEED_FORCE !== "1") {
   console.error("Refusing to seed a production database. Set SEED_FORCE=1 to override.");
   process.exit(1);
 }
 
 const prisma = new PrismaClient();
-const PASSWORD = "password123";
+// In production every seeded account (including the ADMIN "demo" user) gets a random
+// password that is printed once at the end — never the well-known dev password.
+const PASSWORD = process.env.SEED_PASSWORD ?? (isProd ? randomBytes(9).toString("base64url") : "password123");
 const H = (n: number) => new Date(Date.now() - n * 3600 * 1000);
 const D = (n: number) => new Date(Date.now() - n * 86400 * 1000);
 const dayKey = (d: Date) => d.toISOString().slice(0, 10);
@@ -326,7 +330,7 @@ async function main() {
 
   const counts = { users: users.length, circles: circles.length, posts: postIds.length, comments: commentIds.length };
   console.log("✅ seeded", counts);
-  console.log("   demo login → username: demo  password: password123");
+  console.log(`   demo login → username: demo  password: ${PASSWORD}${isProd ? "  (random — save it now, it is not stored anywhere)" : ""}`);
 }
 
 main()
