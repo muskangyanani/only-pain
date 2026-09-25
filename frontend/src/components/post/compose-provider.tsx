@@ -6,7 +6,7 @@ import { VisuallyHidden } from "radix-ui";
 import { PostComposer } from "./post-composer";
 import { useGuestGate } from "@/components/misc/guest-gate";
 
-type Opts = { circle?: { id: string; name: string; emoji: string } | null };
+type Opts = { circle?: { id: string; name: string; icon: string } | null };
 const Ctx = React.createContext<{ open: (opts?: Opts) => void; close: () => void }>({ open: () => {}, close: () => {} });
 
 export function ComposeProvider({ children }: { children: React.ReactNode }) {

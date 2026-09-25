@@ -22,7 +22,7 @@ The name is a joke. The place isn't. **only pain** is a peer-support social netw
 
 **Community**
 - **Anonymous-by-default posting.** One switch turns a post into just words. The author link is stripped at the service layer and never reaches any screen — feeds, profiles, notifications, or the moderation queue. Only the author sees their own anonymous history.
-- **Reactions that mean something.** 🤍 heart · 🫠 *I feel this* · 🫂 *you're not alone* · 🔥 *sending strength* · 🧸 *hug*. Counted, never ranked.
+- **Reactions that mean something.** heart · *I feel this* · *you're not alone* · *sending strength* · *hug* — five hand-drawn glyphs (no platform emoji), counted, never ranked.
 - **Circles.** Small rooms for specific kinds of heavy (3am club, the grief kitchen, burnout ward, adhd brains…). Members-only posting, open reading, community-created circles with owners.
 - **People who get it.** Explainable matching on shared struggles and circles — the UI shows *why* someone is suggested.
 - **Three feeds.** *For you* (ranked by overlap with what you carry, warmth and freshness), *Latest*, *Following* (which can never leak anonymous posts).

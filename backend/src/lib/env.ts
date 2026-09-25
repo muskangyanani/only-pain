@@ -26,7 +26,7 @@ const parsed = schema.safeParse(process.env);
 if (!parsed.success) {
   const issues = parsed.error.issues.map((i) => `  - ${i.path.join(".")}: ${i.message}`).join("\n");
   // eslint-disable-next-line no-console
-  console.error(`\n✖ Invalid environment configuration:\n${issues}\n`);
+  console.error(`\nInvalid environment configuration:\n${issues}\n`);
   process.exit(1);
 }
 

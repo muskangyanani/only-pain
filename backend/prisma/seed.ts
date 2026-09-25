@@ -40,14 +40,14 @@ const users = [
 ];
 
 const circles = [
-  { slug: "3am-club", name: "3am club", emoji: "🌙", hue: 265, tagline: "For everyone awake when they shouldn't be.", tags: ["insomnia", "anxiety", "intrusive-thoughts"], description: "Can't sleep? Neither can we. No advice unless asked — just company at the hour when everything feels bigger than it is.", guidelines: "Keep it gentle. No sleep-shaming. If someone's spiralling, sit with them before suggesting anything." },
-  { slug: "burnout-ward", name: "burnout ward", emoji: "🔥", hue: 25, tagline: "You're not lazy. You're depleted.", tags: ["burnout", "work", "anxiety"], description: "For people whose jobs, studies or caregiving have quietly eaten them. Rest without guilt, resign without shame, rebuild without hustle-speak." },
-  { slug: "grief-kitchen", name: "the grief kitchen", emoji: "🕯️", hue: 40, tagline: "Where we talk about the people who aren't here.", tags: ["grief", "loneliness", "family"], description: "Loss of any kind — a parent, a friend, a pet, a version of yourself. Say their name here as often as you need." },
-  { slug: "anxious-and-still-here", name: "anxious & still here", emoji: "🌊", hue: 200, tagline: "Panic, worry, the what-ifs. Together.", tags: ["anxiety", "panic", "intrusive-thoughts"], description: "Grounding, reality-checking and a lot of 'me too'. Bring your spirals; we'll help you find the floor." },
-  { slug: "one-day-at-a-time", name: "one day at a time", emoji: "🌱", hue: 140, tagline: "Recovery in all its shapes.", tags: ["recovery", "addiction", "small-wins"], description: "Substances, self-harm, eating, anything you're working to leave behind. Relapse talk is welcome. Judgement isn't." },
-  { slug: "adhd-brains", name: "adhd brains", emoji: "🧠", hue: 300, tagline: "40 tabs open, none of them this one.", tags: ["adhd", "self-worth", "work"], description: "Late-diagnosed, undiagnosed, medicated or not. Body doubling threads, dopamine menus, and permission to be exactly this scattered." },
-  { slug: "lonely-together", name: "lonely together", emoji: "🫂", hue: 330, tagline: "New cities, old friendships, empty evenings.", tags: ["loneliness", "relationships", "depression"], description: "For the ache of being surrounded and still alone. Low-pressure introductions, check-in buddies, no expectations." },
-  { slug: "small-wins", name: "small wins", emoji: "✨", hue: 50, tagline: "Showered. Answered the email. Got out of bed.", tags: ["small-wins", "depression", "recovery"], description: "Post the win that would sound tiny to anyone who doesn't get it. We get it." },
+  { slug: "3am-club", name: "3am club", icon: "moon", hue: 265, tagline: "For everyone awake when they shouldn't be.", tags: ["insomnia", "anxiety", "intrusive-thoughts"], description: "Can't sleep? Neither can we. No advice unless asked — just company at the hour when everything feels bigger than it is.", guidelines: "Keep it gentle. No sleep-shaming. If someone's spiralling, sit with them before suggesting anything." },
+  { slug: "burnout-ward", name: "burnout ward", icon: "flame", hue: 25, tagline: "You're not lazy. You're depleted.", tags: ["burnout", "work", "anxiety"], description: "For people whose jobs, studies or caregiving have quietly eaten them. Rest without guilt, resign without shame, rebuild without hustle-speak." },
+  { slug: "grief-kitchen", name: "the grief kitchen", icon: "candle", hue: 40, tagline: "Where we talk about the people who aren't here.", tags: ["grief", "loneliness", "family"], description: "Loss of any kind — a parent, a friend, a pet, a version of yourself. Say their name here as often as you need." },
+  { slug: "anxious-and-still-here", name: "anxious & still here", icon: "wave", hue: 200, tagline: "Panic, worry, the what-ifs. Together.", tags: ["anxiety", "panic", "intrusive-thoughts"], description: "Grounding, reality-checking and a lot of 'me too'. Bring your spirals; we'll help you find the floor." },
+  { slug: "one-day-at-a-time", name: "one day at a time", icon: "sprout", hue: 140, tagline: "Recovery in all its shapes.", tags: ["recovery", "addiction", "small-wins"], description: "Substances, self-harm, eating, anything you're working to leave behind. Relapse talk is welcome. Judgement isn't." },
+  { slug: "adhd-brains", name: "adhd brains", icon: "brain", hue: 300, tagline: "40 tabs open, none of them this one.", tags: ["adhd", "self-worth", "work"], description: "Late-diagnosed, undiagnosed, medicated or not. Body doubling threads, dopamine menus, and permission to be exactly this scattered." },
+  { slug: "lonely-together", name: "lonely together", icon: "together", hue: 330, tagline: "New cities, old friendships, empty evenings.", tags: ["loneliness", "relationships", "depression"], description: "For the ache of being surrounded and still alone. Low-pressure introductions, check-in buddies, no expectations." },
+  { slug: "small-wins", name: "small wins", icon: "sparkle", hue: 50, tagline: "Showered. Answered the email. Got out of bed.", tags: ["small-wins", "depression", "recovery"], description: "Post the win that would sound tiny to anyone who doesn't get it. We get it." },
 ];
 
 type SeedPost = { u: string; content: string; tags: string[]; anon?: boolean; circle?: string; h: number; cw?: string };
@@ -126,11 +126,11 @@ async function reset() {
 }
 
 async function main() {
-  console.log("🧹 clearing database…");
+  console.log("clearing database…");
   await reset();
   const passwordHash = await bcrypt.hash(PASSWORD, 12);
 
-  console.log("👥 users…");
+  console.log("users…");
   const userByName = new Map<string, string>();
   for (const [i, u] of users.entries()) {
     const created = await prisma.user.create({
@@ -174,7 +174,7 @@ async function main() {
     await prisma.circle.update({ where: { id: circleBySlug.get(c.slug)! }, data: { memberCount } });
   }
 
-  console.log("📝 posts…");
+  console.log("posts…");
   const postIds: string[] = [];
   for (const p of posts) {
     const created = await prisma.post.create({
@@ -192,7 +192,7 @@ async function main() {
     postIds.push(created.id);
   }
 
-  console.log("💬 comments…");
+  console.log("comments…");
   const commentIds: string[] = [];
   for (const [i, cm] of comments.entries()) {
     const parentId = cm.replyToIdx !== undefined ? commentIds[cm.replyToIdx] ?? null : null;
@@ -210,7 +210,7 @@ async function main() {
     commentIds.push(created.id);
   }
 
-  console.log("💛 reactions…");
+  console.log("reactions…");
   const types = ["HEART", "FEEL_THIS", "NOT_ALONE", "STRENGTH", "HUG"] as const;
   let seed = 7;
   const rand = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
@@ -229,7 +229,7 @@ async function main() {
     await prisma.circle.update({ where: { id: circleBySlug.get(c.slug)! }, data: { postCount } });
   }
 
-  console.log("🤝 follows, bookmarks, moods, dms…");
+  console.log("follows, bookmarks, moods, dms…");
   const follows: [string, string][] = [
     ["demo", "quietstorm"], ["demo", "after_the_rain"], ["demo", "halfway_home"], ["demo", "tinyvictories"],
     ["quietstorm", "demo"], ["quietstorm", "kabir_k"], ["notfinebutok", "demo"], ["notfinebutok", "slowmornings"],
@@ -329,7 +329,7 @@ async function main() {
   });
 
   const counts = { users: users.length, circles: circles.length, posts: postIds.length, comments: commentIds.length };
-  console.log("✅ seeded", counts);
+  console.log("seeded", counts);
   console.log(`   demo login → username: demo  password: ${PASSWORD}${isProd ? "  (random — save it now, it is not stored anywhere)" : ""}`);
 }
 

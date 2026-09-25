@@ -23,7 +23,7 @@ function shell(title: string, body: string, cta?: { label: string; url: string }
 
 async function deliver(to: string, subject: string, html: string, debugLink?: string) {
   if (!resend) {
-    logger.info({ to, subject, link: debugLink }, "📧 email (console transport)");
+    logger.info({ to, subject, link: debugLink }, "email (console transport)");
     return;
   }
   const { error } = await resend.emails.send({ from: env.EMAIL_FROM, to, subject, html });

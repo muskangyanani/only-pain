@@ -18,8 +18,9 @@ import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from "@/component
 import { Tip } from "@/components/ui/popover";
 import { TagChip } from "./tag-chip";
 import { CrisisResources, SafetyNotice } from "@/components/misc/crisis-resources";
+import { CircleIcon } from "@/components/icons/circle-icon";
 
-type FixedCircle = { id: string; name: string; emoji: string } | null;
+type FixedCircle = { id: string; name: string; icon: string } | null;
 
 export function PostComposer({
   circle: fixedCircle = null,
@@ -139,7 +140,8 @@ export function PostComposer({
                   <Menu>
                     <MenuTrigger asChild>
                       <button type="button" className={cn("inline-flex h-8 max-w-[180px] items-center gap-1.5 rounded-full border px-3 text-[12.5px] font-medium transition-colors", chosenCircle ? "border-sky/40 bg-sky-soft text-sky" : "border-border text-fg-muted hover:bg-surface")}>
-                        <span className="truncate">{chosenCircle ? `${chosenCircle.emoji} ${chosenCircle.name}` : "Everyone"}</span>
+                        {chosenCircle && <CircleIcon icon={chosenCircle.icon} className="size-3.5" />}
+                        <span className="truncate">{chosenCircle ? chosenCircle.name : "Everyone"}</span>
                         <ChevronDown className="size-3.5" />
                       </button>
                     </MenuTrigger>
@@ -147,7 +149,7 @@ export function PostComposer({
                       <MenuLabel>Post to</MenuLabel>
                       <MenuItem onSelect={() => setCircleId(null)}>{!circleId && <Check />} Everyone</MenuItem>
                       {myCircles.data!.map((c) => (
-                        <MenuItem key={c.id} onSelect={() => setCircleId(c.id)}>{circleId === c.id && <Check />} {c.emoji} {c.name}</MenuItem>
+                        <MenuItem key={c.id} onSelect={() => setCircleId(c.id)}>{circleId === c.id && <Check />} <CircleIcon icon={c.icon} className="size-4 text-fg-muted" /> {c.name}</MenuItem>
                       ))}
                     </MenuContent>
                   </Menu>

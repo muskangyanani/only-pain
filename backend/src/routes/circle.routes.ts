@@ -7,7 +7,7 @@ import { validationHook } from "../middleware/validate.js";
 import { loadUser, optionalAuth, requireAuth } from "../middleware/auth.js";
 import { rateLimit } from "../lib/rate-limit.js";
 import { cursorQuery } from "../lib/pagination.js";
-import { LIMITS, TAGS } from "../lib/constants.js";
+import { CIRCLE_ICONS, LIMITS, TAGS } from "../lib/constants.js";
 import type { AppVariables } from "../types.js";
 
 const router = new Hono<{ Variables: AppVariables }>();
@@ -22,7 +22,7 @@ const createSchema = z.object({
   name: z.string().trim().min(3).max(LIMITS.circleName),
   tagline: z.string().trim().min(3).max(LIMITS.circleTagline),
   description: z.string().trim().max(LIMITS.circleDescription).nullable().optional(),
-  emoji: z.string().trim().min(1).max(8).optional(),
+  icon: z.enum(CIRCLE_ICONS).optional(),
   hue: z.number().int().min(0).max(360).optional(),
   tags: z.array(z.enum(TAGS)).max(4).default([]),
   guidelines: z.string().trim().max(LIMITS.circleDescription).nullable().optional(),

@@ -16,6 +16,8 @@ import { SectionTitle } from "@/components/ui/misc";
 import { Button } from "@/components/ui/button";
 import { PersonRow } from "@/components/people/person-card";
 import { EmberMark } from "@/components/brand/wordmark";
+import { MoodIcon } from "@/components/icons/mood-icon";
+import { CircleBadge } from "@/components/icons/circle-icon";
 
 function QuickMood() {
   const qc = useQueryClient();
@@ -34,14 +36,14 @@ function QuickMood() {
       <p className="font-display text-[17px] text-fg">{today ? "Checked in for today." : `${greeting()} — how's today?`}</p>
       {today ? (
         <p className="mt-1 text-[13px] text-fg-muted">
-          {MOOD_SCALE[today.score - 1]?.emoji} {MOOD_SCALE[today.score - 1]?.label}
+          <MoodIcon score={today.score} className="mr-1 inline size-4 align-[-3px]" style={{ color: MOOD_SCALE[today.score - 1]?.color }} />{MOOD_SCALE[today.score - 1]?.label}
           {summary.data?.streak ? ` · ${summary.data.streak}-day streak` : ""} · <Link href="/tools/mood" className="text-ember hover:underline">see the month</Link>
         </p>
       ) : (
         <div className="mt-3 flex justify-between gap-1">
           {MOOD_SCALE.map((s) => (
             <button key={s.score} type="button" onClick={() => m.mutate(s.score)} disabled={m.isPending} className="flex flex-1 flex-col items-center gap-1 rounded-xl py-2 text-[20px] leading-none transition-all hover:-translate-y-0.5 hover:bg-surface" aria-label={s.label}>
-              <span>{s.emoji}</span>
+              <MoodIcon score={s.score} className="size-6" style={{ color: s.color }} />
               <span className="text-[10.5px] text-fg-subtle">{s.label}</span>
             </button>
           ))}
@@ -90,7 +92,7 @@ export function RightRail() {
             <div className="space-y-1">
               {circles.data!.slice(0, 3).map((c) => (
                 <Link key={c.id} href={`/circles/${c.slug}`} className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-surface-2">
-                  <span className="flex size-9 items-center justify-center rounded-xl text-lg" style={{ background: `oklch(0.7 0.12 ${c.hue} / 0.18)` }}>{c.emoji}</span>
+                  <CircleBadge icon={c.icon} hue={c.hue} size="sm" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[14px] font-semibold text-fg">{c.name}</span>
                     <span className="block truncate text-[12px] text-fg-subtle">{c.memberCount} members · {c.tagline}</span>

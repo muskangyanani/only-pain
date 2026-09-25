@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { TAG_LABELS, type Tag } from "@/lib/constants";
+import { CircleIcon } from "@/components/icons/circle-icon";
 
 export function TagChip({ tag, active, onClick, size = "md", className }: { tag: string; active?: boolean; onClick?: () => void; size?: "sm" | "md"; className?: string }) {
   const label = TAG_LABELS[tag as Tag] ?? tag;
@@ -26,7 +27,7 @@ export function TagChip({ tag, active, onClick, size = "md", className }: { tag:
   );
 }
 
-export function CircleChip({ circle, size = "md", className }: { circle: { slug: string; name: string; emoji: string; hue: number }; size?: "sm" | "md"; className?: string }) {
+export function CircleChip({ circle, size = "md", className }: { circle: { slug: string; name: string; icon: string; hue: number }; size?: "sm" | "md"; className?: string }) {
   return (
     <Link
       href={`/circles/${circle.slug}`}
@@ -34,7 +35,7 @@ export function CircleChip({ circle, size = "md", className }: { circle: { slug:
       className={cn("inline-flex max-w-full items-center gap-1 rounded-full border font-medium transition-colors hover:brightness-110", size === "sm" ? "h-6 px-2 text-[11.5px]" : "h-7.5 px-3 text-[12.5px]", className)}
       style={{ background: `oklch(0.7 0.12 ${circle.hue} / 0.14)`, borderColor: `oklch(0.7 0.12 ${circle.hue} / 0.3)`, color: `oklch(var(--tw-chip-l, 0.62) 0.13 ${circle.hue})` }}
     >
-      <span aria-hidden>{circle.emoji}</span>
+      <CircleIcon icon={circle.icon} className="size-3.5" />
       <span className="truncate">{circle.name}</span>
     </Link>
   );

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-dvh">
+      <div className="aurora aurora-page" aria-hidden><span /><span /><span /></div>
       <header className="sticky top-0 z-40">
         <div className="glass mx-auto mt-3 flex h-14 w-[calc(100%-1.5rem)] max-w-6xl items-center justify-between rounded-full px-4 sm:px-6">
           <Wordmark />

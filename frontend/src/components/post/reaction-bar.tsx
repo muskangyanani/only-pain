@@ -12,6 +12,7 @@ import { patchPostInCaches } from "@/lib/cache";
 import { cn } from "@/lib/utils";
 import { useGuestGate } from "@/components/misc/guest-gate";
 import { Popover, PopoverContent, PopoverTrigger, Tip } from "@/components/ui/popover";
+import { ReactionIcon, REACTION_TONE } from "@/components/icons/reaction-icon";
 
 type Result = { myReaction: ReactionType | null; reactions: Record<ReactionType, number>; reactionCount: number };
 
@@ -53,14 +54,14 @@ export function ReactionBar({ post }: { post: Post }) {
             type="button"
             className={cn(
               "group inline-flex h-8.5 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium transition-all",
-              mine ? "border-ember/40 bg-ember-soft text-ember" : "border-border bg-surface text-fg-muted hover:border-border-strong hover:text-fg"
+              post.myReaction ? REACTION_TONE[post.myReaction].pill : "border-border bg-surface text-fg-muted hover:border-border-strong hover:text-fg"
             )}
             aria-label="React"
           >
             <AnimatePresence mode="wait" initial={false}>
               {mine ? (
-                <motion.span key={post.myReaction} initial={{ scale: 0.4, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.4, opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 22 }} className="text-[15px] leading-none">
-                  {mine.emoji}
+                <motion.span key={post.myReaction} initial={{ scale: 0.4, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0.4, opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 22 }} className="flex">
+                  <ReactionIcon type={post.myReaction!} className="size-[18px]" />
                 </motion.span>
               ) : (
                 <motion.span key="icon" initial={{ scale: 0.6 }} animate={{ scale: 1 }} exit={{ scale: 0.6, opacity: 0 }}>
@@ -82,10 +83,10 @@ export function ReactionBar({ post }: { post: Post }) {
                 whileHover={{ scale: 1.25, y: -3 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => react(r)}
-                className={cn("flex size-11 items-center justify-center rounded-xl text-[22px] leading-none transition-colors hover:bg-surface", post.myReaction === r && "bg-ember-soft ring-1 ring-ember/40")}
+                className={cn("flex size-11 items-center justify-center rounded-xl transition-colors hover:bg-surface", REACTION_TONE[r].text, post.myReaction === r && "bg-surface ring-1 ring-current/40")}
                 aria-label={REACTION_META[r].label}
               >
-                {REACTION_META[r].emoji}
+                <ReactionIcon type={r} className="size-7" />
               </motion.button>
             </Tip>
           ))}
@@ -99,10 +100,10 @@ export function ReactionBar({ post }: { post: Post }) {
             onClick={() => react(r)}
             className={cn(
               "inline-flex h-8.5 items-center gap-1 rounded-full border px-2.5 text-[13px] tabular-nums transition-colors",
-              post.myReaction === r ? "border-ember/40 bg-ember-soft text-ember" : "border-border bg-transparent text-fg-muted hover:bg-surface"
+              post.myReaction === r ? REACTION_TONE[r].pill : "border-border bg-transparent text-fg-muted hover:bg-surface"
             )}
           >
-            <span className="text-[14px] leading-none">{REACTION_META[r].emoji}</span>
+            <ReactionIcon type={r} className={cn("size-4", post.myReaction !== r && REACTION_TONE[r].text)} />
             <span>{post.reactions[r]}</span>
           </button>
         </Tip>

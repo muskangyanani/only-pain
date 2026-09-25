@@ -34,7 +34,7 @@ export type Circle = {
   name: string;
   tagline: string;
   description: string | null;
-  emoji: string;
+  icon: string;
   hue: number;
   tags: string[];
   guidelines: string | null;
@@ -55,7 +55,7 @@ export type Post = {
   isAnonymous: boolean;
   tags: Tag[];
   circleId: string | null;
-  circle: { id: string; slug: string; name: string; emoji: string; hue: number } | null;
+  circle: { id: string; slug: string; name: string; icon: string; hue: number } | null;
   contentWarning: string | null;
   moderation: Moderation;
   riskLevel: RiskLevel;
@@ -133,7 +133,7 @@ export type Notification = {
   post: { id: string; preview: string } | null;
   comment: { id: string; preview: string } | null;
   conversationId: string | null;
-  circle: { id: string; slug: string; name: string; emoji: string } | null;
+  circle: { id: string; slug: string; name: string; icon: string } | null;
 };
 
 export type MoodEntry = { id?: string; dayKey: string; score: number; feelings: string[]; note: string | null; createdAt?: string };

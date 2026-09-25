@@ -11,7 +11,7 @@ import { billingEnabled } from "./services/billing.service.js";
 const server = serve({ fetch: app.fetch, port: env.PORT, hostname: "0.0.0.0" }, (info) => {
   logger.info(
     { port: info.port, ai: aiLive() ? "live" : "mock", billing: billingEnabled ? "enabled" : "disabled", redis: env.REDIS_URL ? "on" : "off" },
-    "🫂 only pain api ready"
+    "only pain api ready"
   );
 });
 

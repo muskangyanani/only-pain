@@ -198,18 +198,24 @@
   pointer-events: none;
   z-index: 0;
 }
+.aurora.aurora-page {
+  bottom: auto;
+  height: 170vh;
+}
+/* Radial gradients rather than filter: blur() — blur on large offscreen layers rasterises
+   with hard edges on some GPUs; a gradient fades to transparent at its own edge everywhere. */
 .aurora > span {
   position: absolute;
   border-radius: 999px;
-  filter: blur(70px);
   opacity: 0.55;
-  will-change: transform;
+  background: radial-gradient(closest-side, var(--c) 0%, color-mix(in oklab, var(--c) 45%, transparent) 38%, transparent 100%);
 }
-.aurora > span:nth-child(1) { width: 46vw; height: 46vw; left: -8vw; top: -12vw; background: var(--ember); animation: float 14s ease-in-out infinite; }
-.aurora > span:nth-child(2) { width: 40vw; height: 40vw; right: -10vw; top: 6vw; background: var(--violet); animation: float 18s ease-in-out infinite reverse; }
-.aurora > span:nth-child(3) { width: 34vw; height: 34vw; left: 30vw; bottom: -18vw; background: var(--gold); animation: float 22s ease-in-out infinite; opacity: 0.4; }
+.aurora > span:nth-child(1) { --c: var(--ember); width: 66vw; height: 66vw; left: -22vw; top: -26vw; animation: float 14s ease-in-out infinite; }
+.aurora > span:nth-child(2) { --c: var(--violet); width: 58vw; height: 58vw; right: -20vw; top: -6vw; animation: float 18s ease-in-out infinite reverse; }
+.aurora > span:nth-child(3) { --c: var(--gold); width: 48vw; height: 48vw; left: 26vw; bottom: -22vw; animation: float 22s ease-in-out infinite; opacity: 0.4; }
+.aurora.aurora-page > span:nth-child(3) { bottom: auto; top: 60vh; }
 .dark .aurora > span { opacity: 0.32; }
-.dark .aurora > span:nth-child(3) { opacity: 0.22; }
+.dark .aurora > span:nth-child(3) { opacity: 0.2; }
 
 /* ---------- Utilities ---------- */
 @utility glass {

@@ -17,6 +17,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Spinner, EmptyState } from "@/components/ui/misc";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { CircleBadge } from "@/components/icons/circle-icon";
 
 export default function CirclePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -34,7 +35,7 @@ export default function CirclePage() {
       <div className="card relative overflow-hidden p-5 sm:p-6">
         <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full blur-3xl" style={{ background: `oklch(0.7 0.14 ${c.hue} / 0.45)` }} />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start">
-          <span className="flex size-16 shrink-0 items-center justify-center rounded-3xl text-4xl" style={{ background: `oklch(0.7 0.12 ${c.hue} / 0.2)` }}>{c.emoji}</span>
+          <CircleBadge icon={c.icon} hue={c.hue} size="lg" />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="font-display text-[28px] leading-tight text-fg">{c.name}</h1>
@@ -68,7 +69,7 @@ export default function CirclePage() {
       </div>
 
       {me && c.isMember ? (
-        <PostComposer circle={{ id: c.id, name: c.name, emoji: c.emoji }} />
+        <PostComposer circle={{ id: c.id, name: c.name, icon: c.icon }} />
       ) : me ? (
         <p className="rounded-2xl border border-dashed border-border-strong px-4 py-3 text-center text-[13.5px] text-fg-muted">Join the circle to post in it. Reading is always open.</p>
       ) : null}

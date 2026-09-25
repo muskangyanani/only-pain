@@ -14,6 +14,7 @@ import { useNow } from "@/hooks/use-now";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { Tip } from "@/components/ui/popover";
+import { MoodGlyph, MoodIcon } from "@/components/icons/mood-icon";
 
 export function MoodCheckIn({ className }: { className?: string }) {
   const summary = useQuery({ queryKey: qk.moodSummary, queryFn: () => api.get<MoodSummary>("/api/mood/summary") });
@@ -50,7 +51,7 @@ function MoodForm({ today, streak, className }: { today: MoodEntry | null; strea
       <div className="mt-4 grid grid-cols-5 gap-2">
         {MOOD_SCALE.map((s) => (
           <button key={s.score} type="button" onClick={() => setScore(s.score)} className={cn("flex flex-col items-center gap-1.5 rounded-2xl border py-3 transition-all", score === s.score ? "scale-[1.03] border-ember bg-ember-soft" : "border-border hover:bg-surface")} aria-pressed={score === s.score}>
-            <span className="text-[26px] leading-none">{s.emoji}</span>
+            <MoodIcon score={s.score} className="size-8" style={{ color: s.color }} />
             <span className={cn("text-[12px]", score === s.score ? "font-semibold text-ember" : "text-fg-muted")}>{s.label}</span>
           </button>
         ))}
@@ -76,7 +77,7 @@ export function MoodChart({ entries, days = 30, className }: { entries: MoodEntr
   const [view, setView] = React.useState<"chart" | "table">("chart");
   const [hover, setHover] = React.useState<number | null>(null);
   const now = useNow();
-  const W = 640, H = 200, PAD = { l: 34, r: 14, t: 14, b: 28 };
+  const W = 640, H = 200, PAD = { l: 38, r: 14, t: 14, b: 28 };
   const byDay = new Map(entries.map((e) => [e.dayKey, e]));
   const points = Array.from({ length: days }, (_, i) => {
     const d = new Date(now);
@@ -108,7 +109,7 @@ export function MoodChart({ entries, days = 30, className }: { entries: MoodEntr
             <thead className="sticky top-0 bg-surface text-left text-[11.5px] uppercase tracking-wider text-fg-subtle"><tr><th className="px-3 py-2">Day</th><th className="px-3 py-2">Mood</th><th className="px-3 py-2">Feelings</th><th className="px-3 py-2">Note</th></tr></thead>
             <tbody>
               {[...filled].reverse().map((p) => (
-                <tr key={p.key} className="border-t border-border"><td className="px-3 py-2 text-fg-muted">{p.label}</td><td className="px-3 py-2 text-fg">{MOOD_SCALE[p.entry!.score - 1]?.emoji} {MOOD_SCALE[p.entry!.score - 1]?.label}</td><td className="px-3 py-2 text-fg-muted">{p.entry!.feelings.join(", ") || "—"}</td><td className="px-3 py-2 text-fg-muted">{p.entry!.note ?? "—"}</td></tr>
+                <tr key={p.key} className="border-t border-border"><td className="px-3 py-2 text-fg-muted">{p.label}</td><td className="px-3 py-2 text-fg"><span className="inline-flex items-center gap-1.5"><MoodIcon score={p.entry!.score} className="size-4" style={{ color: MOOD_SCALE[p.entry!.score - 1]?.color }} />{MOOD_SCALE[p.entry!.score - 1]?.label}</span></td><td className="px-3 py-2 text-fg-muted">{p.entry!.feelings.join(", ") || "—"}</td><td className="px-3 py-2 text-fg-muted">{p.entry!.note ?? "—"}</td></tr>
               ))}
             </tbody>
           </table>
@@ -119,7 +120,7 @@ export function MoodChart({ entries, days = 30, className }: { entries: MoodEntr
             {[1, 2, 3, 4, 5].map((s) => (
               <g key={s}>
                 <line x1={PAD.l} x2={W - PAD.r} y1={y(s)} y2={y(s)} stroke="var(--border)" strokeWidth={1} />
-                <text x={PAD.l - 8} y={y(s) + 4} textAnchor="end" fontSize={11} fill="var(--fg-subtle)">{MOOD_SCALE[s - 1]?.emoji}</text>
+                <g transform={`translate(8 ${(y(s) - 8.5).toFixed(1)}) scale(0.7)`} style={{ color: MOOD_SCALE[s - 1]?.color }} fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><MoodGlyph score={s} /></g>
               </g>
             ))}
             {[0, Math.floor(days / 2), days - 1].map((i) => (
@@ -137,7 +138,7 @@ export function MoodChart({ entries, days = 30, className }: { entries: MoodEntr
           </svg>
           {hovered?.entry && (
             <div className="pointer-events-none absolute -top-1 rounded-xl border border-border-strong bg-bg-elevated px-3 py-2 text-[12.5px] shadow-pop" style={{ left: `clamp(0px, calc(${(x(hovered.i) / W) * 100}% - 70px), calc(100% - 150px))` }}>
-              <p className="font-semibold text-fg">{hovered.label} · {MOOD_SCALE[hovered.entry.score - 1]?.emoji} {MOOD_SCALE[hovered.entry.score - 1]?.label}</p>
+              <p className="flex items-center gap-1.5 font-semibold text-fg">{hovered.label} · <MoodIcon score={hovered.entry.score} className="size-4" style={{ color: MOOD_SCALE[hovered.entry.score - 1]?.color }} />{MOOD_SCALE[hovered.entry.score - 1]?.label}</p>
               {hovered.entry.feelings.length > 0 && <p className="text-fg-muted">{hovered.entry.feelings.join(", ")}</p>}
               {hovered.entry.note && <p className="mt-0.5 max-w-[220px] text-fg-muted">“{hovered.entry.note}”</p>}
             </div>

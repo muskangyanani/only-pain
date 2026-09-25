@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Ghost, Users, Sparkles, ShieldCheck, HandHeart, Moon, ArrowRight, Check } from "lucide-react";
-import { REACTIONS, REACTION_META, PLUS_PRICE } from "@/lib/constants";
+import { REACTIONS, REACTION_META, PLUS_PRICE, type ReactionType } from "@/lib/constants";
+import { ReactionIcon, REACTION_TONE } from "@/components/icons/reaction-icon";
 import { Button } from "@/components/ui/button";
 import { EmberMark } from "@/components/brand/wordmark";
 
-function MockPost({ name, handle, time, body, tags, anon, reactions, replies }: { name: string; handle?: string; time: string; body: string; tags: string[]; anon?: boolean; reactions: [string, number][]; replies: number }) {
+function MockPost({ name, handle, time, body, tags, anon, reactions, replies }: { name: string; handle?: string; time: string; body: string; tags: string[]; anon?: boolean; reactions: [ReactionType, number][]; replies: number }) {
   return (
     <div className="card p-5 text-left">
       <div className="flex items-center gap-3">
@@ -14,7 +15,7 @@ function MockPost({ name, handle, time, body, tags, anon, reactions, replies }: 
       <p className="mt-3 text-[15px] leading-relaxed text-fg">{body}</p>
       <div className="mt-3 flex flex-wrap gap-1.5">{tags.map((t) => <span key={t} className="rounded-full border border-border bg-surface px-2 text-[11.5px] font-medium leading-6 text-fg-muted">#{t}</span>)}</div>
       <div className="mt-4 flex items-center gap-1.5 text-[13px]">
-        {reactions.map(([e, n]) => <span key={e} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-2.5 text-fg-muted"><span>{e}</span>{n}</span>)}
+        {reactions.map(([r, n]) => <span key={r} className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-2.5 text-fg-muted"><ReactionIcon type={r} className={`size-4 ${REACTION_TONE[r].text}`} />{n}</span>)}
         <span className="ml-auto text-fg-subtle">{replies} replies</span>
       </div>
     </div>
@@ -33,7 +34,6 @@ export default function LandingPage() {
   return (
     <div className="overflow-x-hidden">
       <section className="relative px-6 pb-20 pt-16 sm:pt-24">
-        <div className="aurora"><span /><span /><span /></div>
         <div className="relative mx-auto max-w-6xl">
           <div className="mx-auto max-w-3xl text-center">
             <p className="inline-flex items-center gap-2 rounded-full border border-border bg-bg-elevated/70 px-3.5 py-1.5 text-[12.5px] font-medium text-fg-muted"><Moon className="size-3.5 text-violet" /> open all night · anonymous by default · no toxic positivity</p>
@@ -47,9 +47,9 @@ export default function LandingPage() {
           </div>
 
           <div className="mt-16 grid gap-4 md:grid-cols-3">
-            <MockPost name="Anonymous" anon time="3h" body="Genuinely don't know if I'm tired or depressed or just a person who has been running on 5 hours of sleep for six months. Is there a difference at this point?" tags={["burnout", "insomnia", "advice wanted"]} reactions={[["🫠", 14], ["🫂", 9]]} replies={11} />
-            <MockPost name="Dev" handle="halfway_home" time="20h" body="412 days. Last night was the first night in a while I really wanted a drink. Sat in the car outside the shop for twenty minutes. Drove home. Made tea. Hated the tea. Still 412." tags={["recovery", "small wins"]} reactions={[["🔥", 31], ["🧸", 12]]} replies={18} />
-            <MockPost name="Priya" handle="after_the_rain" time="2d" body="Found a voice note from her. 12 seconds. 'Beta, did you eat.' I've listened to it forty times today. Yes amma. I ate." tags={["grief", "family"]} reactions={[["🤍", 40], ["🫂", 22]]} replies={9} />
+            <MockPost name="Anonymous" anon time="3h" body="Genuinely don't know if I'm tired or depressed or just a person who has been running on 5 hours of sleep for six months. Is there a difference at this point?" tags={["burnout", "insomnia", "advice wanted"]} reactions={[["FEEL_THIS", 14], ["NOT_ALONE", 9]]} replies={11} />
+            <MockPost name="Dev" handle="halfway_home" time="20h" body="412 days. Last night was the first night in a while I really wanted a drink. Sat in the car outside the shop for twenty minutes. Drove home. Made tea. Hated the tea. Still 412." tags={["recovery", "small wins"]} reactions={[["STRENGTH", 31], ["HUG", 12]]} replies={18} />
+            <MockPost name="Priya" handle="after_the_rain" time="2d" body="Found a voice note from her. 12 seconds. 'Beta, did you eat.' I've listened to it forty times today. Yes amma. I ate." tags={["grief", "family"]} reactions={[["HEART", 40], ["NOT_ALONE", 22]]} replies={9} />
           </div>
         </div>
       </section>
@@ -84,7 +84,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-5 gap-2">
               {REACTIONS.map((r) => (
                 <div key={r} className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-bg-elevated/70 px-2 py-4 text-center">
-                  <span className="text-[30px] leading-none">{REACTION_META[r].emoji}</span>
+                  <ReactionIcon type={r} className={`size-9 ${REACTION_TONE[r].text}`} />
                   <span className="text-[11px] font-medium leading-tight text-fg-muted">{REACTION_META[r].label}</span>
                 </div>
               ))}

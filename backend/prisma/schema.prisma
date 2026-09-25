@@ -309,7 +309,7 @@ model Circle {
   name        String
   tagline     String
   description String?
-  emoji       String   @default("🫂")
+  icon        String   @default("together")
   hue         Int      @default(30)
   tags        String[] @default([])
   guidelines  String?

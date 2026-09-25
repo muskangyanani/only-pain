@@ -32,23 +32,29 @@ export const CW_LABELS: Record<(typeof CONTENT_WARNINGS)[number], string> = {
 
 export const REACTIONS = ["HEART", "FEEL_THIS", "NOT_ALONE", "STRENGTH", "HUG"] as const;
 export type ReactionType = (typeof REACTIONS)[number];
-export const REACTION_META: Record<ReactionType, { emoji: string; label: string; short: string }> = {
-  HEART: { emoji: "🤍", label: "Heart", short: "heart" },
-  FEEL_THIS: { emoji: "🫠", label: "I feel this", short: "feel this" },
-  NOT_ALONE: { emoji: "🫂", label: "You're not alone", short: "not alone" },
-  STRENGTH: { emoji: "🔥", label: "Sending strength", short: "strength" },
-  HUG: { emoji: "🧸", label: "Hug", short: "hug" },
+export const REACTION_META: Record<ReactionType, { label: string; short: string }> = {
+  HEART: { label: "Heart", short: "heart" },
+  FEEL_THIS: { label: "I feel this", short: "feel this" },
+  NOT_ALONE: { label: "You're not alone", short: "not alone" },
+  STRENGTH: { label: "Sending strength", short: "strength" },
+  HUG: { label: "Hug", short: "hug" },
 };
+
+/** Custom circle glyph keys — mirrored in backend/src/lib/constants.ts; drawn in components/icons/circle-icon.tsx. */
+export const CIRCLE_ICONS = [
+  "together", "moon", "flame", "candle", "wave", "sprout", "brain", "sparkle", "coffee", "rain", "leaf", "teddy", "headphones", "notebook", "feather", "bubbles", "umbrella",
+] as const;
+export type CircleIconKey = (typeof CIRCLE_ICONS)[number];
 
 export const FEELINGS = ["anxious", "numb", "sad", "angry", "tired", "overwhelmed", "lonely", "hopeful", "calm", "grateful", "restless", "okay"] as const;
 export type Feeling = (typeof FEELINGS)[number];
 
 export const MOOD_SCALE = [
-  { score: 1, label: "awful", emoji: "🌧️", color: "var(--rose)" },
-  { score: 2, label: "rough", emoji: "☁️", color: "var(--gold)" },
-  { score: 3, label: "meh", emoji: "🌫️", color: "var(--fg-muted)" },
-  { score: 4, label: "okay", emoji: "🌤️", color: "var(--sky)" },
-  { score: 5, label: "good", emoji: "☀️", color: "var(--sage)" },
+  { score: 1, label: "awful", color: "var(--rose)" },
+  { score: 2, label: "rough", color: "var(--gold)" },
+  { score: 3, label: "meh", color: "var(--fg-muted)" },
+  { score: 4, label: "okay", color: "var(--sky)" },
+  { score: 5, label: "good", color: "var(--sage)" },
 ] as const;
 
 export const LIMITS = { post: 2000, comment: 600, bio: 200, displayName: 40, dm: 2000, companion: 2000, thought: 1000 };

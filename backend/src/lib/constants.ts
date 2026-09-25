@@ -55,6 +55,11 @@ export const CONTENT_WARNINGS = [
 
 export const REACTIONS = ["HEART", "FEEL_THIS", "NOT_ALONE", "STRENGTH", "HUG"] as const;
 
+/** Custom circle glyphs (drawn in frontend/src/components/icons/circle-icon.tsx). */
+export const CIRCLE_ICONS = [
+  "together", "moon", "flame", "candle", "wave", "sprout", "brain", "sparkle", "coffee", "rain", "leaf", "teddy", "headphones", "notebook", "feather", "bubbles", "umbrella",
+] as const;
+
 export const FEELINGS = [
   "anxious",
   "numb",

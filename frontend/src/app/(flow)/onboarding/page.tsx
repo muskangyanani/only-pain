@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useMe } from "@/hooks/use-me";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
+import { CircleBadge } from "@/components/icons/circle-icon";
 
 export default function OnboardingPage() {
   const { me } = useMe();
@@ -77,7 +78,7 @@ function OnboardingFlow({ me }: { me: Me }) {
         <div className="animate-fade-up space-y-5">
           <div><h1 className="font-display text-[30px] leading-tight text-fg">You&apos;re in.</h1><p className="mt-1 text-[14px] text-fg-muted">{mine.data?.length ? "We put you in a couple of circles that match. Leave any of them whenever." : "Explore is where the people are. Ember is where the quiet is."}</p></div>
           {mine.data && mine.data.length > 0 && (
-            <div className="space-y-2">{mine.data.map((c) => <Link key={c.id} href={`/circles/${c.slug}`} className="flex items-center gap-3 rounded-2xl border border-border bg-surface/70 p-3 hover:bg-surface"><span className="flex size-10 items-center justify-center rounded-xl text-xl" style={{ background: `oklch(0.7 0.12 ${c.hue} / 0.18)` }}>{c.emoji}</span><span className="min-w-0"><span className="block font-semibold text-fg">{c.name}</span><span className="block truncate text-[12.5px] text-fg-muted">{c.tagline}</span></span></Link>)}</div>
+            <div className="space-y-2">{mine.data.map((c) => <Link key={c.id} href={`/circles/${c.slug}`} className="flex items-center gap-3 rounded-2xl border border-border bg-surface/70 p-3 hover:bg-surface"><CircleBadge icon={c.icon} hue={c.hue} size="sm" /><span className="min-w-0"><span className="block font-semibold text-fg">{c.name}</span><span className="block truncate text-[12.5px] text-fg-muted">{c.tagline}</span></span></Link>)}</div>
           )}
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button size="lg" className="flex-1" onClick={() => { router.push("/home"); router.refresh(); }}>Go to my feed</Button>

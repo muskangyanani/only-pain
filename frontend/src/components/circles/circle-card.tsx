@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { TagChip } from "@/components/post/tag-chip";
+import { CircleBadge, CircleIcon, CIRCLE_ICON_LABELS } from "@/components/icons/circle-icon";
+import { CIRCLE_ICONS, type CircleIconKey } from "@/lib/constants";
 
 export function useJoinCircle(slug: string) {
   const qc = useQueryClient();
@@ -48,7 +50,7 @@ export function CircleCard({ circle, className }: { circle: Circle; className?: 
     <Link href={`/circles/${circle.slug}`} className={cn("card group relative flex flex-col overflow-hidden p-4 transition-shadow hover:shadow-pop", className)}>
       <div className="pointer-events-none absolute -right-10 -top-10 size-36 rounded-full opacity-60 blur-3xl transition-opacity group-hover:opacity-90" style={{ background: `oklch(0.7 0.14 ${circle.hue} / 0.5)` }} />
       <div className="relative flex items-start gap-3">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl text-2xl" style={{ background: `oklch(0.7 0.12 ${circle.hue} / 0.18)` }}>{circle.emoji}</span>
+        <CircleBadge icon={circle.icon} hue={circle.hue} size="md" />
         <div className="min-w-0 flex-1">
           <p className="font-display text-[19px] leading-tight text-fg">{circle.name}</p>
           <p className="mt-0.5 text-[13.5px] text-fg-muted">{circle.tagline}</p>
@@ -65,7 +67,6 @@ export function CircleCard({ circle, className }: { circle: Circle; className?: 
   );
 }
 
-const EMOJIS = ["🫂", "🌙", "🔥", "🕯️", "🌊", "🌱", "🧠", "✨", "☕", "🌧️", "🪴", "🧸", "🎧", "📓", "🕊️", "🫧"];
 
 export function CreateCircleDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const qc = useQueryClient();
@@ -73,12 +74,12 @@ export function CreateCircleDialog({ open, onOpenChange }: { open: boolean; onOp
   const [name, setName] = React.useState("");
   const [tagline, setTagline] = React.useState("");
   const [description, setDescription] = React.useState("");
-  const [emoji, setEmoji] = React.useState("🫂");
+  const [icon, setIcon] = React.useState<CircleIconKey>("together");
   const [hueOverride, setHue] = React.useState<number | null>(null);
   const hue = hueOverride ?? hueFrom(name || "only pain");
   const [tags, setTags] = React.useState<string[]>([]);
   const m = useMutation({
-    mutationFn: () => api.post<Circle>("/api/circles", { name, tagline, description: description || null, emoji, hue, tags }),
+    mutationFn: () => api.post<Circle>("/api/circles", { name, tagline, description: description || null, icon, hue, tags }),
     onSuccess: (c) => {
       qc.invalidateQueries({ queryKey: ["circles"] });
       onOpenChange(false);
@@ -95,10 +96,14 @@ export function CreateCircleDialog({ open, onOpenChange }: { open: boolean; onOp
           <DialogDescription>A small room for a specific kind of heavy. You&apos;ll be its owner and first moderator.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
-          <div className="flex items-center gap-3">
-            <span className="flex size-16 shrink-0 items-center justify-center rounded-2xl text-3xl" style={{ background: `oklch(0.7 0.12 ${hue} / 0.2)` }}>{emoji}</span>
-            <div className="flex flex-wrap gap-1">
-              {EMOJIS.map((e) => <button key={e} type="button" onClick={() => setEmoji(e)} className={cn("size-8 rounded-lg text-lg hover:bg-surface", emoji === e && "bg-surface-2")}>{e}</button>)}
+          <div className="flex items-start gap-4">
+            <CircleBadge icon={icon} hue={hue} size="lg" />
+            <div className="grid flex-1 grid-cols-6 gap-1 sm:grid-cols-9">
+              {CIRCLE_ICONS.map((k) => (
+                <button key={k} type="button" title={CIRCLE_ICON_LABELS[k]} onClick={() => setIcon(k)} aria-pressed={icon === k} className={cn("flex size-9 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-surface hover:text-fg", icon === k && "bg-surface-2 text-fg ring-1 ring-ember/50")}>
+                  <CircleIcon icon={k} className="size-5" />
+                </button>
+              ))}
             </div>
           </div>
           <Field label="Colour"><input type="range" min={0} max={360} value={hue} onChange={(e) => setHue(Number(e.target.value))} className="w-full accent-[var(--ember)]" /></Field>

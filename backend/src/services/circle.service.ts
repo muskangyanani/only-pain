@@ -10,7 +10,7 @@ export const circleCard = {
   name: true,
   tagline: true,
   description: true,
-  emoji: true,
+  icon: true,
   hue: true,
   tags: true,
   guidelines: true,
@@ -70,7 +70,7 @@ export async function getCircle(slug: string, viewerId: string | null) {
 
 export async function createCircle(
   userId: string,
-  input: { name: string; tagline: string; description?: string | null; emoji?: string; hue?: number; tags: string[]; guidelines?: string | null }
+  input: { name: string; tagline: string; description?: string | null; icon?: string; hue?: number; tags: string[]; guidelines?: string | null }
 ) {
   const slug = slugify(input.name);
   if (slug.length < 3) throw badRequest("Pick a slightly longer name.");
@@ -82,7 +82,7 @@ export async function createCircle(
       name: input.name.trim(),
       tagline: input.tagline.trim(),
       description: input.description?.trim() || null,
-      emoji: input.emoji || "🫂",
+      icon: input.icon || "together",
       hue: input.hue ?? Math.floor(Math.random() * 360),
       tags: input.tags,
       guidelines: input.guidelines?.trim() || null,

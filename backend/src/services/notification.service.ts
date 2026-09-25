@@ -11,7 +11,7 @@ export const notificationInclude = {
   actor: { select: actorSelect },
   post: { select: { id: true, content: true, isAnonymous: true } },
   comment: { select: { id: true, content: true } },
-  circle: { select: { id: true, slug: true, name: true, emoji: true } },
+  circle: { select: { id: true, slug: true, name: true, icon: true } },
 } as const;
 
 type Row = Awaited<ReturnType<typeof prisma.notification.findFirst<{ include: typeof notificationInclude }>>>;
