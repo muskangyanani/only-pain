@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
 
-// In production the API is proxied under the same origin (/api/* -> API_PROXY_URL)
+// In production the API is proxied under the same origin (/api/* -> BACKEND_URL)
 // so auth cookies stay first-party and no CORS is involved.
-const API_PROXY_URL = process.env.API_PROXY_URL ?? "http://localhost:4000";
+import { backendUrl } from "./src/lib/server-env";
+
+const BACKEND_URL = backendUrl();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -18,7 +20,7 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      { source: "/api/:path*", destination: `${API_PROXY_URL}/api/:path*` },
+      { source: "/api/:path*", destination: `${BACKEND_URL}/api/:path*` },
     ];
   },
   async headers() {

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { PostDetail } from "./post-detail";
 
-const API = process.env.API_PROXY_URL ?? "http://localhost:4000";
+import { backendUrl } from "@/lib/server-env";
+
+const API = backendUrl();
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;

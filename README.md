@@ -130,7 +130,7 @@ Useful scripts: `npm test` (API integration tests against a real replica set —
 | `RESEND_API_KEY`, `EMAIL_FROM` | api | Transactional email (console transport when empty) |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PLUS_MONTHLY` | api | Plus billing (UI degrades gracefully when empty) |
 | `ADMIN_EMAILS` | api | Comma-separated emails that sign up as ADMIN |
-| `API_PROXY_URL` | web (server) | Where `/api/*` is proxied |
+| `BACKEND_URL` | web (server) | Where `/api/*` is proxied |
 | `NEXT_PUBLIC_SOCKET_URL`, `NEXT_PUBLIC_APP_URL` | web (browser) | Socket origin, canonical URL |
 
 ## Deployment

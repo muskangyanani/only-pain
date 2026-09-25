@@ -61,7 +61,7 @@ The API must be a **long-running Node process** (websockets + SSE), which is why
 1. Import the repo → **Root Directory: `frontend`** → Framework: Next.js.
 2. Environment variables:
    ```
-   API_PROXY_URL=https://onlypain-api.up.railway.app     # the API origin (server-side only)
+   BACKEND_URL=https://onlypain-api.up.railway.app     # the API origin (server-side only)
    NEXT_PUBLIC_SOCKET_URL=https://onlypain-api.up.railway.app
    NEXT_PUBLIC_APP_URL=https://onlypain.app
    ```

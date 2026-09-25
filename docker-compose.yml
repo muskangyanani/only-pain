@@ -45,7 +45,7 @@ services:
         NEXT_PUBLIC_APP_URL: http://localhost:3000
     depends_on: [api]
     environment:
-      API_PROXY_URL: http://api:4000
+      BACKEND_URL: http://api:4000
     ports: ["3000:3000"]
 
 volumes:

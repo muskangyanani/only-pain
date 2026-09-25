@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { ProfileView } from "./profile-view";
 
-const API = process.env.API_PROXY_URL ?? "http://localhost:4000";
+import { backendUrl } from "@/lib/server-env";
+
+const API = backendUrl();
 
 export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
   const { username } = await params;
